@@ -66,6 +66,56 @@ namespace Democracy.Controllers
             return RedirectToAction("Index");
         }
 
+        public ActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            var state = db.States.Find(id);
+
+            if (state == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(state);
+        }
+
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            var state = db.States.Find(id);
+
+            if (state == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(state);
+        }
+
+        [HttpPost]
+        public ActionResult Delete(int? id, State state)
+        {
+            state = db.States.Find(id);
+
+            if (state == null)
+            {
+                return HttpNotFound();
+            }
+
+            db.States.Remove(state);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
