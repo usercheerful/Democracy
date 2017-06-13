@@ -12,6 +12,7 @@ namespace Democracy.Models
         public int VotingId { get; set; }
         [Required(ErrorMessage = "The field {0} is required")]
         [StringLength(50, ErrorMessage = "The field {0} must contain between {2} and {1} characters", MinimumLength = 3)]
+        [Display(Name = "Voting description")]
         public string Description { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
@@ -24,13 +25,13 @@ namespace Democracy.Models
         [Required(ErrorMessage = "The field {0} is required")]
         [Display(Name = "Date time start")]
         [DataType(DataType.DateTime)]
-        [DisplayFormat(DataFormatString ="{0:yyyy-MM-dd hh:mm}",ApplyFormatInEditMode =true)]
+        [DisplayFormat(DataFormatString ="{0:yyyy-MM-dd hh:mm tt}",ApplyFormatInEditMode =true)]
         public DateTime DateTimeStart { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
         [Display(Name = "Date time end")]
         [DataType(DataType.DateTime)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd hh:mm}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd hh:mm tt}", ApplyFormatInEditMode = true)]
         public DateTime DateTimeEnd { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
@@ -50,6 +51,6 @@ namespace Democracy.Models
         [Display(Name = "Winner")]
         public int CandidateWinId { get; set; }
 
-
+        public virtual State State { get; set; }
     }
 }
