@@ -38,7 +38,10 @@ namespace Democracy.Models
         public string Grade { get; set; }
         public string Group { get; set; }
 
+
+        //Esta validacion de StringLenght miniumnLenght:5  impide que se ingresen imagenes vacias(Que no se seleccione imagenes), Devuelve un error en la vista
         [StringLength(200, ErrorMessage = "The field {0} must contain between {2} and {1} characters", MinimumLength = 5)]
+
         [DataType(DataType.ImageUrl)]
         public string Photo { get; set; }
 

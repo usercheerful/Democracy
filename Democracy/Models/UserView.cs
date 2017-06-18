@@ -9,6 +9,8 @@ namespace Democracy.Models
 {
     public class UserView
     {
+        public int UserId { get; set; }
+
         [Display(Name = "E-Mail")]
         [Required(ErrorMessage = "The field {0} is required")]
         [StringLength(100, ErrorMessage = "The field {0} must contain between {2} and {1} characters", MinimumLength = 7)]
@@ -34,7 +36,7 @@ namespace Democracy.Models
         public string Address { get; set; }
         public string Grade { get; set; }
         public string Group { get; set; }
-
+        
         public HttpPostedFileBase Photo { get; set; } //Permitir capturar los archivos
     }
 }

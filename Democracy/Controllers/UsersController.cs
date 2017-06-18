@@ -8,6 +8,8 @@ using System.Web;
 using System.Web.Mvc;
 using Democracy.Models;
 using System.IO;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace Democracy.Controllers
 {
@@ -91,9 +93,11 @@ namespace Democracy.Controllers
             {
 
                 db.SaveChanges();
+                this.CreateASPUser(userView);
             }
             catch (Exception ex)
             {
+                //capturamos el mensaje de la excepcion
                 if (ex.InnerException != null && 
                     ex.InnerException.InnerException != null && 
                     ex.InnerException.InnerException.Message.Contains("UserNameIndex"))
@@ -114,6 +118,41 @@ namespace Democracy.Controllers
             
         }
 
+        private void CreateASPUser(UserView userView)
+        {
+            //User management
+            var userContext = new ApplicationDbContext();
+            var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(userContext));
+            var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(userContext));
+
+            //Create User role
+            string roleName = "User";
+
+            //verificar si existe, si no existe lo creamos
+            if (!roleManager.RoleExists(roleName))
+            {
+                roleManager.Create(new IdentityRole(roleName));
+            }
+            
+            //Creamos ASP USER
+            var userASP = new ApplicationUser
+            {
+                UserName = userView.UserName,
+                Email =userView.UserName,
+                PhoneNumber = userView.Phone
+            };
+            string password = userASP.UserName;
+            userManager.Create(userASP,password);
+
+            //Agregamos Rol al usuario
+            userASP = userManager.FindByName(userView.UserName);
+            userManager.AddToRole(userASP.Id,"User");
+
+
+        }
+
+
+
         // GET: Users/Edit/5
         public ActionResult Edit(int? id)
         {
@@ -126,6 +165,19 @@ namespace Democracy.Controllers
             {
                 return HttpNotFound();
             }
+
+            var userView = new UserView
+            {
+                Address = user.Address,
+                FirstName = user.FirstName,
+                Grade = user.Grade,
+                Group = user.Group,
+                LastName = user.LastName,
+                Phone = user.Phone,
+                UserId = user.UserId,
+                UserName = user.UserName
+            };
+
             return View(user);
         }
 
@@ -134,15 +186,50 @@ namespace Democracy.Controllers
         // más información vea http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "UserId,UserName,FirstName,LastName,Phone,Address,Grade,Group,Photo")] User user)
+        public ActionResult Edit(UserView userView)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                db.Entry(user).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                return View(userView);
             }
-            return View(user);
+
+
+            //Upload image
+            string path = String.Empty;
+            string pic = String.Empty;
+
+            if (userView.Photo != null)
+            {
+                pic = Path.GetFileName(userView.Photo.FileName);
+                path = Path.Combine(Server.MapPath("~/Content/Photos"), pic);
+                userView.Photo.SaveAs(path);
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    userView.Photo.InputStream.CopyTo(ms);
+                    byte[] array = ms.GetBuffer();
+                }
+            }
+
+            var user = db.Users.Find(userView.UserId);
+
+            user.Address = userView.Address;
+            user.FirstName = userView.FirstName;
+            user.Grade = userView.Grade;
+            user.Group = userView.Group;
+            user.LastName = userView.LastName;
+            user.Phone = userView.Phone;
+
+            if (!string.IsNullOrEmpty(pic))
+            {
+                user.Photo = string.Format("~/Content/Photos/{0}", pic);
+            }
+
+
+            db.Entry(user).State = EntityState.Modified;
+            db.SaveChanges();
+            return RedirectToAction("Index");
+
         }
 
         // GET: Users/Delete/5

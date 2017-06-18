@@ -111,7 +111,29 @@ namespace Democracy.Controllers
             }
 
             db.States.Remove(state);
-            db.SaveChanges();
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+
+                if (ex.InnerException != null &&
+                    ex.InnerException.InnerException!= null &&
+                    ex.InnerException.InnerException.Message.Contains("REFERENCE"))
+                {
+                    ViewBag.Error = "No se puede eliminar el registro, porque esta relacionado con otros registros";
+                }else
+                {
+                    ViewBag.Error = ex.Message;
+                }
+
+                return View(state);
+            }
+
+
+            
             return RedirectToAction("Index");
 
         }
