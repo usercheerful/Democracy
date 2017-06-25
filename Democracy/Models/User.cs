@@ -28,6 +28,10 @@ namespace Democracy.Models
         [StringLength(50, ErrorMessage = "The field {0} must contain between {2} and {1} characters", MinimumLength = 2)]
         public string LastName { get; set; }
 
+        [Display(Name = "User")]
+        //SI LA PROPIEDAD SOLO TIENE EL METODO GET, NO SE AGREGA COMO COLUMNA EN LA BASE DE DATOS
+        public string FullName { get { return string.Format("{0} {1}",this.FirstName,this.LastName); } }
+
         [Required(ErrorMessage = "The field {0} is required")]
         [StringLength(20, ErrorMessage = "The field {0} must contain between {2} and {1} characters", MinimumLength = 7)]
         public string Phone { get; set; }
@@ -44,6 +48,9 @@ namespace Democracy.Models
 
         [DataType(DataType.ImageUrl)]
         public string Photo { get; set; }
+
+
+        public virtual ICollection<GroupMember> GroupMembers { get; set; }
 
     }
 }
