@@ -38,6 +38,7 @@ namespace Democracy.Controllers
             {
                 GroupId = groupId
             };
+
             return View(view);
         }
 
