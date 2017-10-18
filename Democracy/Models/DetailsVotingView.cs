@@ -6,9 +6,9 @@ using System.Web;
 
 namespace Democracy.Models
 {
-    public class Voting
+    public class DetailsVotingView
     {
-        [Key]
+
         public int VotingId { get; set; }
         [Required(ErrorMessage = "The field {0} is required")]
         [StringLength(50, ErrorMessage = "The field {0} must contain between {2} and {1} characters", MinimumLength = 3)]
@@ -25,7 +25,7 @@ namespace Democracy.Models
         [Required(ErrorMessage = "The field {0} is required")]
         [Display(Name = "Date time start")]
         [DataType(DataType.DateTime)]
-        [DisplayFormat(DataFormatString ="{0:yyyy-MM-dd hh:mm tt}",ApplyFormatInEditMode =true)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd hh:mm tt}", ApplyFormatInEditMode = true)]
         public DateTime DateTimeStart { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
@@ -51,10 +51,10 @@ namespace Democracy.Models
         [Display(Name = "Winner")]
         public int CandidateWinId { get; set; }
 
-        public virtual State State { get; set; }
+        public State State { get; set; }
 
-        public virtual ICollection<VotingGroup> VotingGroups { get; set; }
+        public List<VotingGroup> VotingGroups { get; set; }
 
-        public virtual ICollection<Candidate> Candidates { get; set; }
+        public List<Candidate> Candidates { get; set; }
     }
 }

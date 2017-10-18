@@ -42,7 +42,8 @@ namespace Democracy.Controllers
                 //Si en caso ya esta asignado ese grupo al voting
                 if (votingGroup!= null)
                 {
-                    ViewBag.Error = "The group already belong to group";
+                    ModelState.AddModelError(string.Empty, "The group already belong to group");
+                    //ViewBag.Error = "";
                     ViewBag.GroupId = new SelectList(db.Groups.OrderBy(g => g.Description),
                         "GroupId",
                         "Description");

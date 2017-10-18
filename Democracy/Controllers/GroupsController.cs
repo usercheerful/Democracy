@@ -104,7 +104,6 @@ namespace Democracy.Controllers
             };
 
 
-
             return View(view);
         }
 
