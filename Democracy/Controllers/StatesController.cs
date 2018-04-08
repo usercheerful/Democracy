@@ -9,6 +9,7 @@ using System.Web.Mvc;
 
 namespace Democracy.Controllers
 {
+    [Authorize(Roles ="Admin")]
     public class StatesController : Controller
     {
 

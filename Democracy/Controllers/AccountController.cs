@@ -9,6 +9,9 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Democracy.Models;
+using Democracy.Classes;
+using System.IO;
+using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace Democracy.Controllers
 {
@@ -147,29 +150,122 @@ namespace Democracy.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Register(RegisterViewModel model)
+        public async Task<ActionResult> Register(RegisterUserView userView)
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await UserManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
-                {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
-                    // Para obtener más información sobre cómo habilitar la confirmación de cuenta y el restablecimiento de contraseña, visite http://go.microsoft.com/fwlink/?LinkID=320771
-                    // Enviar correo electrónico con este vínculo
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Confirmar cuenta", "Para confirmar la cuenta, haga clic <a href=\"" + callbackUrl + "\">aquí</a>");
 
+                //Upload image
+
+                string path = String.Empty;
+                string pic = String.Empty;
+
+                if (userView.Photo != null)
+                {
+                    pic = Path.GetFileName(userView.Photo.FileName);
+                    path = Path.Combine(Server.MapPath("~/Content/Photos"), pic);
+                    userView.Photo.SaveAs(path);
+
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        userView.Photo.InputStream.CopyTo(ms);
+                        byte[] array = ms.GetBuffer();
+                    }
+                }
+                
+
+                //save record
+                var user = new User
+                {
+                    Address = userView.Address,
+                    FirstName = userView.FirstName,
+                    Grade = userView.Grade,
+                    Group = userView.Group,
+                    LastName = userView.LastName,
+                    Phone = userView.Phone,
+                    Photo = pic == String.Empty ? string.Empty : string.Format("~/Content/Photos/{0}", pic),
+                    UserName = userView.UserName
+                };
+                var db = new DemocracyContext();
+                //Agregamos y Guardamos en la tabla users
+                db.Users.Add(user);
+
+                try
+                {
+
+                    db.SaveChanges();
+                    //Gestionamos el usuario y sus roles, y retornamos en objeto
+                    var userASP = this.CreateASPUser(userView);
+
+                    //Despues de registrar logea al usuario
+                    await SignInManager.SignInAsync(userASP, isPersistent: false, rememberBrowser: false);
                     return RedirectToAction("Index", "Home");
                 }
-                AddErrors(result);
+                catch (Exception ex)
+                {
+                    //capturamos el mensaje de la excepcion
+                    if (ex.InnerException != null &&
+                        ex.InnerException.InnerException != null &&
+                        ex.InnerException.InnerException.Message.Contains("UserNameIndex"))
+                    {
+
+                        ModelState.AddModelError(
+                            string.Empty,
+                            "El E-mail ya ha sido utilizado por otro usuario"
+                            );
+
+                        
+                    }
+                    else
+                    {
+                        
+                        ModelState.AddModelError(
+                            string.Empty,
+                            ex.Message
+                            );
+                    }
+
+                    return View(userView);
+                }
+
+                
             }
 
             // Si llegamos a este punto, es que se ha producido un error y volvemos a mostrar el formulario
-            return View(model);
+            return View(userView);
+        }
+
+        private ApplicationUser CreateASPUser(RegisterUserView userView)
+        {
+            //User management
+            var userContext = new ApplicationDbContext();
+            var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(userContext));
+            var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(userContext));
+
+            //Create User role
+            string roleName = "User";
+
+            //verificar si existe, si no existe lo creamos
+            if (!roleManager.RoleExists(roleName))
+            {
+                roleManager.Create(new IdentityRole(roleName));
+            }
+
+            //Creamos ASP USER
+            var userASP = new ApplicationUser
+            {
+                UserName = userView.UserName,
+                Email = userView.UserName,
+                PhoneNumber = userView.Phone
+            };
+            string password = userASP.UserName;
+            userManager.Create(userASP, userView.Password);
+
+            //Agregamos Rol al usuario
+            userASP = userManager.FindByName(userView.UserName);
+            userManager.AddToRole(userASP.Id, "User");
+
+            return userASP;
         }
 
         //
