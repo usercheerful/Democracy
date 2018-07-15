@@ -17,6 +17,9 @@
         <th>
             Number of members
         </th>
+        <th>
+            Miembros
+        </th>
         <th></th>
     </tr>
 
@@ -28,6 +31,14 @@
         <td>
             @Html.DisplayFor(modelItem => item.GroupMembers.Count)
         </td>
+        <td>
+            @foreach (var member in item.GroupMembers)
+            {
+                <span>@member.User.FullName</span><br>
+            }
+            
+        </td>
+
         <td>
             @Html.ActionLink("Edit", "Edit", new { id=item.GroupId }) |
             @Html.ActionLink("Details", "Details", new { id=item.GroupId }) |

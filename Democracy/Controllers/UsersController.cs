@@ -10,14 +10,157 @@ using Democracy.Models;
 using System.IO;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using CrystalDecisions.CrystalReports.Engine;
+using System.Configuration;
+using System.Data.SqlClient;
 
 namespace Democracy.Controllers
 {
-    [Authorize(Roles ="Admin")]
+    
     public class UsersController : Controller
     {
         private DemocracyContext db = new DemocracyContext();
 
+        [Authorize(Roles = "Admin")]
+        public ActionResult PDF()
+        {
+            var report = this.GenerateUserReport();
+            Stream stream = report.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
+            return File(stream, "application/pdf");
+        }
+
+        [Authorize(Roles = "Admin")]
+        public ActionResult XLS()
+        {
+            var report = this.GenerateUserReport();
+            Stream stream = report.ExportToStream(CrystalDecisions.Shared.ExportFormatType.Excel);
+
+            return File(stream, "application/xls","Users.xls");
+        }
+
+        [Authorize(Roles = "Admin")]
+        public ActionResult DOC()
+        {
+            var report = this.GenerateUserReport();
+            Stream stream = report.ExportToStream(CrystalDecisions.Shared.ExportFormatType.WordForWindows);
+
+            return File(stream, "application/doc", "Users.doc");
+        }
+
+
+        private ReportClass GenerateUserReport()
+        {
+            DataTable datatable = new DataTable();
+            try
+            {
+                var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+                string sql = "select * from Users order by LastName, FirstName";
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var comand = new SqlCommand(sql,connection))
+                    {
+                        var adapter = new SqlDataAdapter(comand);
+                        adapter.Fill(datatable);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            var report = new ReportClass();
+            report.FileName = Server.MapPath("/Reports/Users.rpt");
+
+            //cargamos el reporte en memoria
+            report.Load();
+            //cargamos el origen de datos
+            report.SetDataSource(datatable);
+
+            return report;
+
+        }
+
+        [Authorize(Roles = "User")]
+        public ActionResult MySettings()
+        {
+            //this.User.Identity.Name -> Devuelve el nombre del usuario logeado
+            var user = db.Users
+                .Where(u => u.UserName == this.User.Identity.Name)
+                .FirstOrDefault();
+
+            var view = new UserSettingsView
+            {
+                Address= user.Address,
+                FirstName = user.FirstName,
+                Grade = user.Grade,
+                Group = user.Group,
+                LastName = user.LastName,
+                Phone = user.Phone,
+                Photo = user.Photo,
+                UserId = user.UserId,
+                UserName = user.UserName                
+            };
+
+
+
+            return View(view);
+        }
+
+
+        [HttpPost]
+        public ActionResult MySettings(UserSettingsView view)
+        {
+            if (ModelState.IsValid)
+            {
+                //Upload image
+                string path = String.Empty;
+                string pic = String.Empty;
+
+                if (view.NewPhoto != null)
+                {
+                    pic = Path.GetFileName(view.NewPhoto.FileName);
+                    path = Path.Combine(Server.MapPath("~/Content/Photos"), pic);
+                    view.NewPhoto.SaveAs(path);
+
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        view.NewPhoto.InputStream.CopyTo(ms);
+                        byte[] array = ms.GetBuffer();
+                    }
+                }
+
+
+                var user = db.Users.Find(view.UserId);
+
+                user.Address = view.Address;
+                user.FirstName = view.FirstName;
+                user.Grade = view.Grade;
+                user.Group = view.Group;
+                user.LastName = view.LastName;
+                user.Phone = view.Phone;
+
+                if (!string.IsNullOrEmpty(pic))
+                {
+                    user.Photo = string.Format("~/Content/Photos/{0}", pic);
+                }
+
+
+                db.Entry(user).State = EntityState.Modified;
+                db.SaveChanges();
+
+
+                return RedirectToAction("Index", "Home");
+                
+            }
+
+            return View(view);
+        }
+
+
+        [Authorize(Roles = "Admin")]
         public ActionResult OnOffAdmin(int id)
         {
             var user = db.Users.Find(id);
@@ -43,7 +186,7 @@ namespace Democracy.Controllers
             return RedirectToAction("Index");
         }
 
-
+        [Authorize(Roles = "Admin")]
         // GET: Users
         public ActionResult Index()
         {
@@ -77,6 +220,8 @@ namespace Democracy.Controllers
             return View(usersView);
         }
 
+
+        [Authorize(Roles = "Admin")]
         // GET: Users/Details/5
         public ActionResult Details(int? id)
         {
@@ -92,6 +237,8 @@ namespace Democracy.Controllers
             return View(user);
         }
 
+
+        [Authorize(Roles = "Admin")]
         // GET: Users/Create
         public ActionResult Create()
         {
@@ -171,6 +318,7 @@ namespace Democracy.Controllers
             
         }
 
+
         private void CreateASPUser(UserView userView)
         {
             //User management
@@ -205,7 +353,7 @@ namespace Democracy.Controllers
         }
 
 
-
+        [Authorize(Roles = "Admin")]
         // GET: Users/Edit/5
         public ActionResult Edit(int? id)
         {
@@ -232,7 +380,7 @@ namespace Democracy.Controllers
                 UserName = user.UserName
             };
 
-            return View(user);
+            return View(userView);
         }
 
         // POST: Users/Edit/5
@@ -286,6 +434,8 @@ namespace Democracy.Controllers
 
         }
 
+
+        [Authorize(Roles = "Admin")]
         // GET: Users/Delete/5
         public ActionResult Delete(int? id)
         {

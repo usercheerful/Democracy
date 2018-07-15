@@ -47,19 +47,24 @@
             <div class="col-md-10">
                 @Html.EditorFor(model => model.DateStart, new { htmlAttributes = new { @class = "form-control" } })
                 @Html.ValidationMessageFor(model => model.DateStart, "", new { @class = "text-danger" })
+
             </div>
         </div>
 
-        @*
-             <h2>@Model.DateStart</h2>
+        @*<h2>@Model.DateStart</h2>
             <h2>@Model.DateStart.Date</h2>
-            <h2>@Model.DateStart.Hour</h2>*@
-
+            <h2>@Model.DateStart.Hour</h2>
+            <h2>@Model.TimeStart.ToString("hh:mm tt") </h2>
+            <h2>@Model.TimeStart.ToString("yyyy-MM-dd") </h2>
+            <h2>@Html.TextBox("fecha", @Model.TimeStart.ToString("yyyy-MM-dd"), new { @style= "background-color: red;", @type="date"  })</h2>
+                verificar el valor de la caja por inspeccion de codigo y comprobar con el valor que se muestra, son distintos*@
+       
         <div class="form-group">
             @Html.LabelFor(model => model.TimeStart, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
                 @Html.EditorFor(model => model.TimeStart, new { htmlAttributes = new { @class = "form-control" } })
                 @Html.ValidationMessageFor(model => model.TimeStart, "", new { @class = "text-danger" })
+                @*En el valor del control se refleja la hora, pero no se muestra en el control. Verificar*@
             </div>
         </div>
 
@@ -76,6 +81,7 @@
             <div class="col-md-10">
                 @Html.EditorFor(model => model.TimeEnd, new { htmlAttributes = new { @class = "form-control" } })
                 @Html.ValidationMessageFor(model => model.TimeEnd, "", new { @class = "text-danger" })
+                @*En el valor del control se refleja la hora, pero no se muestra en el control. Verificar*@
             </div>
         </div>
 
@@ -156,3 +162,5 @@
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
 }
+
+

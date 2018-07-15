@@ -24,7 +24,7 @@ namespace Democracy.Models
         [Required(ErrorMessage = "The field {0} is required")]
         [Display(Name = "Date start")]
         [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd }", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime DateStart { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]
@@ -37,7 +37,7 @@ namespace Democracy.Models
         [Required(ErrorMessage = "The field {0} is required")]
         [Display(Name = "Date end")]
         [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd }", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime DateEnd { get; set; }
 
         [Required(ErrorMessage = "The field {0} is required")]

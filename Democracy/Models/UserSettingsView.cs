@@ -7,13 +7,10 @@ using System.Web;
 
 namespace Democracy.Models
 {
-
     [NotMapped]
-    public class UserIndexView: User
+    public class UserSettingsView: User
     {
-        [Display(Name ="Is Admin?")]
-        public bool IsAdmin { get; set; }
-
-
+        [Display(Name ="New photo")]
+        public HttpPostedFileBase NewPhoto { get; set; } //Permitir capturar los archivos
     }
 }

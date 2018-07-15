@@ -75,7 +75,7 @@ namespace Democracy
             }
             //userASP = userManager.FindByName(userView.UserName);
             userManager.AddToRole(userASP.Id,"Admin");
-
+            userManager.AddToRole(userASP.Id, "User");
 
         }
 
