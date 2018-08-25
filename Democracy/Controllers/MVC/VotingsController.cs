@@ -11,6 +11,7 @@ using System.IO;
 using CrystalDecisions.CrystalReports.Engine;
 using System.Configuration;
 using System.Data.SqlClient;
+using Democracy.Classes;
 
 namespace Democracy.Controllers
 {
@@ -32,7 +33,7 @@ namespace Democracy.Controllers
 
                 if (candidate!= null)
                 {
-                    var state = this.GetState("Closed");
+                    var state = Utilities.GetState("Closed");
                     voting.StateId = state.StateId;
                     voting.CandidateWinId = candidate.User.UserId;
                     db.Entry(voting).State = EntityState.Modified;
@@ -93,7 +94,7 @@ namespace Democracy.Controllers
         [Authorize(Roles = "User")]
         public ActionResult Results()
         {
-            var state = this.GetState("Closed");
+            var state = Utilities.GetState("Closed");
             var votings2 = db.Votings
                 .Where(v=>v.StateId==state.StateId)
                 .Include(v => v.State).ToList();
@@ -243,140 +244,14 @@ namespace Democracy.Controllers
                 return View();
             }
 
-
-
-            //Traemos todas las votaciones que esten en estado abierto y que esten en el rango de fechas
-            //correspondiente
-
-            //Obtenemos el estado buscado 
-            var state = this.GetState("Open");
-
-            //Obtener de event votings por el tiempo actual
-            var votings = db.Votings
-                .Where(v => v.StateId == state.StateId &&
-                v.DateTimeStart <= DateTime.Now && v.DateTimeEnd >= DateTime.Now)
-                .Include(v => v.Candidates)
-                .Include(v => v.VotingGroups)
-                .Include(v => v.State)
-                .ToList();
             
-
-            //haciendo pruebas es lo mismo que el este codigo
-            /*var votings22 = db.Votings
-                .Where(v => v.StateId == state.StateId &&
-                v.DateTimeStart <= DateTime.Now && v.DateTimeEnd >= DateTime.Now).ToList();*/
-
-            //Descartar los eventos en los cuales el usuario ya votó
-            int userId = user.UserId;
-            int votingId;
-            VotingDetail votingDetail;
-
-            //opcional para eliminar (1)
-            List<Voting> elementosEliminar = new List<Voting>();
-
-
-            for (int i = 0; i < votings.Count; i++)
-            {
-                votingId =votings[i].VotingId;
-
-                //veremos si el usuaio ya realizo un voto
-                votingDetail = db.VotingDetails
-                    .Where(vd => vd.VotingId == votingId && vd.UserId == userId)
-                    .FirstOrDefault();
-
-                if (votingDetail != null)
-                {
-                    //votings.RemoveAt(i);
-
-                    //opcional para eliminar (1)
-                    elementosEliminar.Add(votings[i]);
-
-                    //opcional para eliminar (2)
-                    /*votings.RemoveAll(v=>db.VotingDetails
-                                    .Where(vd => vd.VotingId == v.VotingId && vd.UserId == userId)
-                                    .FirstOrDefault()!=null);*/
-
-                }
-
-            }
-            //opcional para eliminar (1)
-            foreach (var item in elementosEliminar)
-            {
-                votings.Remove(item);
-            }
-
-            elementosEliminar.Clear();
-
-            //Descartamos los eventos por grupos en los cuales el usuario no está incluido
-
-            for (int i = 0; i < votings.Count; i++)
-            {
-                //evaluamos si el voting es para todos los usuarios
-                if (!votings[i].IsForAllUsers)
-                {
-                    bool userBelongsToGroup = false;
-                    var lista = votings[i].VotingGroups;
-                    foreach (var votingGroup in votings[i].VotingGroups)
-                    {
-                        //vemos si el usuario es miembro de algun grupo
-                        var userGroup = votingGroup.Group.GroupMembers
-                            .Where(gm=>gm.UserId == user.UserId)
-                            .FirstOrDefault();
-
-                        /*var usgroup = (from p in votingGroup.Group.GroupMembers
-                                      where p.UserId == user.UserId
-                                      select p).FirstOrDefault();*/
-
-                        //el usuario pertenece a almenos a un grupo
-                        if (userGroup != null)
-                        {
-                            userBelongsToGroup = true;
-                            break;
-                        }
-                        
-                    }
-
-                    //si el usuario no pertenece al grupo
-                    if (!userBelongsToGroup)
-                    {
-                        //votings.RemoveAt(i);
-                        elementosEliminar.Add(votings[i]);
-                    }
-                }
-                
-            }
-
-            //opcional para eliminar (1)
-            foreach (var item in elementosEliminar)
-            {
-                votings.Remove(item);
-            }
-
-            elementosEliminar.Clear();
-
+            var votings = Utilities.MyVotings(user);
 
             return View(votings);
         }
 
 
-        //Nos aseguramos el estado  exista en la tabla, si no lo creamos
-        private State GetState(string stateName)
-        {
-            var state = db.States
-                .Where(s=>s.Description==stateName)
-                .FirstOrDefault();
-
-            if (state == null)
-            {
-                state = new State(){
-                    Description = stateName
-                };
-                db.States.Add(state);
-                db.SaveChanges();
-                
-            }
-            return state;
-        }
+      
 
         [Authorize(Roles = "Admin")]
         public ActionResult DeleteGroup(int id )

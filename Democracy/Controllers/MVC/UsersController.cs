@@ -13,6 +13,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using CrystalDecisions.CrystalReports.Engine;
 using System.Configuration;
 using System.Data.SqlClient;
+using Democracy.Classes;
 
 namespace Democracy.Controllers
 {
@@ -293,7 +294,7 @@ namespace Democracy.Controllers
             {
 
                 db.SaveChanges();
-                this.CreateASPUser(userView);
+                Utilities.CreateASPUser(userView);
             }
             catch (Exception ex)
             {
@@ -319,7 +320,7 @@ namespace Democracy.Controllers
         }
 
 
-        private void CreateASPUser(UserView userView)
+        /*private void CreateASPUser(UserView userView)
         {
             //User management
             var userContext = new ApplicationDbContext();
@@ -350,7 +351,7 @@ namespace Democracy.Controllers
             userManager.AddToRole(userASP.Id,"User");
 
 
-        }
+        }*/
 
 
         [Authorize(Roles = "Admin")]

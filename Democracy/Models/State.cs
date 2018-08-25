@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Democracy.Models
         [StringLength(50, ErrorMessage = "The field {0} must contain between {2} and {1} characters", MinimumLength = 3)]
         public string Description { get; set; }
 
-
+        [JsonIgnore]
         public virtual ICollection<Voting> Votings { get; set; }
     }
 }
